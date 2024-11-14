@@ -9,18 +9,39 @@ let isBroadcasting = false;
 let conns = [];
 let currentDeviceId = null; // To store the selected audio device ID
 let accumulatedBuffer = b4a.alloc(0); // Buffer for accumulating received audio data
-const topic = crypto.randomBytes(32);
+let stationKey = crypto.randomBytes(32); // Default random key for the station
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('create-station').addEventListener('click', () => {
-    setupStation();
+    // Show the Create Station modal when clicking "Create Station" button
+    const createStationModal = new bootstrap.Modal(document.getElementById('createStationModal'));
+    createStationModal.show();
   });
-  
+
+  document.getElementById('generate-new-key').addEventListener('click', () => {
+    // Generate a new station key automatically
+    stationKey = crypto.randomBytes(32);
+    document.getElementById('existing-key').value = b4a.toString(stationKey, 'hex'); // Display the new key in the text box
+  });
+
+  document.getElementById('create-station-button').addEventListener('click', () => {
+    // Check if the user provided an existing key or use the generated one
+    const existingKey = document.getElementById('existing-key').value.trim();
+    stationKey = existingKey ? b4a.from(existingKey, 'hex') : stationKey;
+
+    // Set up the station with the chosen key
+    setupStation(stationKey);
+    
+    // Hide the modal after setting up the station
+    const createStationModal = bootstrap.Modal.getInstance(document.getElementById('createStationModal'));
+    createStationModal.hide();
+  });
+
   document.getElementById('leave-stream').addEventListener('click', () => {
     stopBroadcast();
     leaveStation();
   });
-  
+
   document.getElementById('join-station-button').addEventListener('click', joinStation);
   document.getElementById('apply-audio-source').addEventListener('click', applyAudioSource);
 
@@ -117,15 +138,15 @@ function broadcastStopSignal() {
 }
 
 // Function to create a broadcasting station
-async function setupStation() {
+async function setupStation(key) {
   swarm = new Hyperswarm();
-  swarm.join(topic, { client: false, server: true });
+  swarm.join(key, { client: false, server: true });
   
   // Show broadcaster controls
   document.getElementById('broadcaster-controls').classList.remove('d-none');
 
   // Update UI
-  document.getElementById('station-info').textContent = `Station ID: ${b4a.toString(topic, 'hex')}`;
+  document.getElementById('station-info').textContent = `Station ID: ${b4a.toString(key, 'hex')}`;
   document.getElementById('setup').classList.add('d-none');
   document.getElementById('controls').classList.remove('d-none');
 
@@ -139,7 +160,7 @@ async function setupStation() {
       conns.splice(conns.indexOf(conn), 1);
       console.log("Peer disconnected.");
     });
-    conn.on('data', handleData); // Use handleData function to process incoming data
+    conn.on('data', handleData);
 
     // Add error handler to log disconnects and suppress crashes
     conn.on('error', (err) => {
