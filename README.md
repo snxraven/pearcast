@@ -20,7 +20,7 @@ pear run pear://q3rutpfbtdsr7ikdpntpojcxy5u356qfczzgqomxqk3jdxn6ao8y
 - **Web Audio API**: A powerful API for capturing and processing live audio in the browser, allowing real-time audio streaming.
 - **Bootstrap**: For responsive and user-friendly UI elements.
 - **JavaScript & Node.js**: Application logic, error handling, and P2P networking.
-- **Pear CLI**: (Optional) If you want to run this as a P2P desktop app using [Pear CLI](https://github.com/pearjs/pear).
+- **Pear CLI**: [Pear CLI](https://docs.pears.com/).
 
 ---
 
