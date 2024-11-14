@@ -2,6 +2,10 @@
 
 `pearCast` is a decentralized, peer-to-peer (P2P) audio broadcasting application that enables users to broadcast and listen to live audio streams directly from their web browser without relying on centralized servers. Using Hyperswarm for P2P networking and the Web Audio API for audio capture and playback, `pearCast` allows users to create and join audio broadcast stations effortlessly.
 
+Run the app on pear!
+
+pear run pear://q3rutpfbtdsr7ikdpntpojcxy5u356qfczzgqomxqk3jdxn6ao8y
+
 ## Key Features
 
 - **Create or Join a Station**: Host a broadcast or tune into an existing one.
