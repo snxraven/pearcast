@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="./assets/bootstrap.min.css" rel="stylesheet">
+  <title>pearCast</title>
+  <style>
+    #titlebar {
+      -webkit-app-region: drag;
+      height: 30px;
+      width: 100%;
+      background-color: #343a40;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    pear-ctrl[data-platform="darwin"] { 
+    float: left; 
+    margin-top: 15px; 
+    margin-left: 5px;
+}
+
+  </style>
+</head>
+<body class="bg-dark text-light">
+  <div id="titlebar">
+    <pear-ctrl></pear-ctrl>
+  </div>
+  <div class="container mt-5 text-center">
+    <h1>pearCast</h1>
+    <div id="setup" class="btn-group mt-4">
+      <button id="create-station" class="btn btn-primary">Create Station</button>
+      <button id="open-join-modal" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#joinModal">Join Station</button>
+    </div>
+    <div id="controls" class="d-none mt-4">
+      <p id="station-info"></p>
+      <button id="leave-stream" class="btn btn-danger mt-2">Leave Broadcast</button>
+
+      <!-- Broadcaster-only Controls -->
+      <div id="broadcaster-controls" class="mt-3 d-none">
+        <label for="audio-input-select" class="form-label">Select Audio Input Source:</label>
+        <select id="audio-input-select" class="form-select"></select>
+        <button id="apply-audio-source" class="btn btn-success mt-2">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Join Modal -->
+  <div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title" id="joinModalLabel">Join a Station</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="station-id" class="form-control" placeholder="Enter Station ID">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="join-station-button">Join</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JavaScript Bundle (includes Popper) -->
+  <script src="./assets/bootstrap.bundle.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
