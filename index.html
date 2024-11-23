@@ -16,13 +16,11 @@
       margin: 0;
       font-family: Arial, sans-serif;
     }
-
     pear-ctrl[data-platform="darwin"] { 
-    float: left; 
-    margin-top: 15px; 
-    margin-left: 5px;
-}
-
+      float: left; 
+      margin-top: 15px; 
+      margin-left: 5px;
+    }
   </style>
 </head>
 <body class="bg-dark text-light">
@@ -44,6 +42,14 @@
         <label for="audio-input-select" class="form-label">Select Audio Input Source:</label>
         <select id="audio-input-select" class="form-select"></select>
         <button id="apply-audio-source" class="btn btn-success mt-2">Apply</button>
+      </div>
+
+      <!-- Listener-only Controls -->
+      <div id="listener-controls" class="mt-3 d-none">
+        <select id="audio-output-select" class="form-select" style="display: none;"></select>
+
+        <!-- <label for="audio-output-select" class="form-label">Select Audio Output Device:</label>
+        <button id="apply-output-device" class="btn btn-success mt-2">Apply</button> -->
       </div>
     </div>
   </div>
@@ -68,25 +74,25 @@
   </div>
 
   <!-- Create Station Modal -->
-<div class="modal fade" id="createStationModal" tabindex="-1" aria-labelledby="createStationModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content bg-dark text-light">
-      <div class="modal-header">
-        <h5 class="modal-title" id="createStationModalLabel">Create Station</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>Generate a new station ID or use an existing ID?</p>
-        <button id="generate-new-key" class="btn btn-primary mt-2">Generate New ID</button>
-        <input type="text" id="existing-key" class="form-control mt-3" placeholder="You may manually enter an ID here">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="create-station-button">Create Station</button>
+  <div class="modal fade" id="createStationModal" tabindex="-1" aria-labelledby="createStationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createStationModalLabel">Create Station</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Generate a new station ID or use an existing ID?</p>
+          <button id="generate-new-key" class="btn btn-primary mt-2">Generate New ID</button>
+          <input type="text" id="existing-key" class="form-control mt-3" placeholder="You may manually enter an ID here">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="create-station-button">Create Station</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- Bootstrap JavaScript Bundle (includes Popper) -->
   <script src="./assets/bootstrap.bundle.min.js"></script>

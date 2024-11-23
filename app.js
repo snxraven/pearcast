@@ -7,32 +7,27 @@ let micStream;
 let audioContext;
 let isBroadcasting = false;
 let conns = [];
-let currentDeviceId = null; // To store the selected audio device ID
+let currentDeviceId = null; // To store the selected audio input device ID
 let accumulatedBuffer = b4a.alloc(0); // Buffer for accumulating received audio data
 let stationKey = crypto.randomBytes(32); // Default random key for the station
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('create-station').addEventListener('click', () => {
-    // Show the Create Station modal when clicking "Create Station" button
     const createStationModal = new bootstrap.Modal(document.getElementById('createStationModal'));
     createStationModal.show();
   });
 
   document.getElementById('generate-new-key').addEventListener('click', () => {
-    // Generate a new station key automatically
     stationKey = crypto.randomBytes(32);
-    document.getElementById('existing-key').value = b4a.toString(stationKey, 'hex'); // Display the new key in the text box
+    document.getElementById('existing-key').value = b4a.toString(stationKey, 'hex');
   });
 
   document.getElementById('create-station-button').addEventListener('click', () => {
-    // Check if the user provided an existing key or use the generated one
     const existingKey = document.getElementById('existing-key').value.trim();
     stationKey = existingKey ? b4a.from(existingKey, 'hex') : stationKey;
 
-    // Set up the station with the chosen key
     setupStation(stationKey);
-    
-    // Hide the modal after setting up the station
+
     const createStationModal = bootstrap.Modal.getInstance(document.getElementById('createStationModal'));
     createStationModal.hide();
   });
@@ -44,17 +39,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById('join-station-button').addEventListener('click', joinStation);
   document.getElementById('apply-audio-source').addEventListener('click', applyAudioSource);
+  // document.getElementById('apply-output-device').addEventListener('click', applyOutputDevice);
 
-  // Populate the audio input source dropdown for the broadcaster
   populateAudioInputSources();
+  populateAudioOutputSources();
 });
 
-// Function to populate audio input sources
+// Update peer count in the UI
+function updatePeerCount() {
+  const peerCount = conns.length;
+  const stationInfoElement = document.getElementById('station-info');
+  if (isBroadcasting) {
+    stationInfoElement.textContent = `Station ID: ${b4a.toString(stationKey, 'hex')}\nConnected Peers: ${peerCount}`;
+  } else {
+    stationInfoElement.textContent = `Station ID: ${b4a.toString(stationKey, 'hex')}\nConnected Peers: ${peerCount}`;
+  }
+  console.log(`Peer count updated: ${peerCount}`);
+}
+
+// Populate audio input sources
 async function populateAudioInputSources() {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     const audioInputSelect = document.getElementById('audio-input-select');
-    audioInputSelect.innerHTML = ''; // Clear existing options
+    audioInputSelect.innerHTML = '';
     devices.forEach((device) => {
       if (device.kind === 'audioinput') {
         const option = document.createElement('option');
@@ -63,26 +71,72 @@ async function populateAudioInputSources() {
         audioInputSelect.appendChild(option);
       }
     });
-    // Set default device ID to the first option
     currentDeviceId = audioInputSelect.value;
   } catch (err) {
     console.error("Error enumerating devices:", err);
   }
 }
 
-// Function to apply selected audio source
+// Populate audio output sources
+async function populateAudioOutputSources() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioOutputSelect = document.getElementById('audio-output-select');
+    audioOutputSelect.innerHTML = '';
+    devices.forEach((device) => {
+      if (device.kind === 'audiooutput') {
+        // const option = document.createElement('option');
+        // option.value = device.deviceId;
+        // option.textContent = device.label || `Speaker ${audioOutputSelect.length + 1}`;
+        // audioOutputSelect.appendChild(option);
+      }
+    });
+  } catch (err) {
+    console.error("Error enumerating output devices:", err);
+  }
+}
+
+// Apply the selected audio output device
+// Apply the selected audio output device
+async function applyOutputDevice() {
+  const selectedDeviceId = document.getElementById('audio-output-select').value;
+  try {
+    if (!selectedDeviceId) {
+      console.warn("No output device selected.");
+      return;
+    }
+
+    // Ensure there is a valid audio element
+    const audioElement = document.createElement('audio');
+    audioElement.autoplay = true; // Play automatically when data is received
+    audioElement.controls = true; // Debugging purposes (can be removed)
+    document.body.appendChild(audioElement); // Add temporarily for testing
+
+    // Set the audio sink to the selected device
+    if (typeof audioElement.setSinkId === 'function') {
+      await audioElement.setSinkId(selectedDeviceId);
+      console.log(`Audio output device applied: ${selectedDeviceId}`);
+    } else {
+      console.error("setSinkId is not supported in this browser.");
+    }
+  } catch (err) {
+    console.error("Error applying audio output device:", err);
+  }
+}
+
+// Apply the selected audio input source
 async function applyAudioSource() {
   const selectedDeviceId = document.getElementById('audio-input-select').value;
   if (selectedDeviceId !== currentDeviceId) {
     currentDeviceId = selectedDeviceId;
-    stopBroadcast();  // Stop current stream
-    startBroadcast(); // Restart stream with new device
+    stopBroadcast();
+    startBroadcast();
   }
 }
 
-// Function to start broadcasting from the microphone
+// Start broadcasting from the microphone
 async function startBroadcast() {
-  if (isBroadcasting) stopBroadcast(); // Stop any existing broadcast
+  if (isBroadcasting) stopBroadcast();
 
   try {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -98,8 +152,6 @@ async function startBroadcast() {
     processor.onaudioprocess = (event) => {
       const audioData = event.inputBuffer.getChannelData(0);
       const buffer = b4a.from(new Float32Array(audioData).buffer);
-
-      // Send audio data to all connections
       for (const conn of conns) {
         conn.write(buffer);
       }
@@ -108,11 +160,11 @@ async function startBroadcast() {
     isBroadcasting = true;
     console.log("Broadcasting started.");
   } catch (err) {
-    console.error("Error accessing microphone:", err);
+    console.error("Error starting broadcast:", err);
   }
 }
 
-// Function to stop broadcasting and clean up resources
+// Stop broadcasting
 function stopBroadcast() {
   if (!isBroadcasting) return;
 
@@ -125,7 +177,7 @@ function stopBroadcast() {
     audioContext.close();
     audioContext = null;
   }
-  accumulatedBuffer = b4a.alloc(0); // Reset accumulated buffer
+  accumulatedBuffer = b4a.alloc(0);
   isBroadcasting = false;
   console.log("Broadcasting stopped.");
 }
@@ -133,93 +185,108 @@ function stopBroadcast() {
 // Broadcast a stop signal to all peers
 function broadcastStopSignal() {
   for (const conn of conns) {
-    conn.write(Buffer.alloc(0)); // Send an empty buffer as a stop signal
+    conn.write(Buffer.alloc(0));
   }
 }
 
-// Function to create a broadcasting station
+function processIncomingAudioData(data) {
+  // Ensure audioContext is initialized
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    console.log("AudioContext initialized.");
+  }
+
+  // Accumulate incoming data
+  accumulatedBuffer = b4a.concat([accumulatedBuffer, data]);
+
+  // Debug log for accumulated buffer size
+  console.log("Accumulated buffer size:", accumulatedBuffer.byteLength);
+
+  // Process audio data in chunks
+  while (accumulatedBuffer.byteLength >= 4096) {
+    try {
+      const chunkSize = 4096; // Process fixed-size chunks
+      const audioData = new Float32Array(accumulatedBuffer.slice(0, chunkSize).buffer);
+      accumulatedBuffer = accumulatedBuffer.slice(chunkSize); // Remove processed data
+
+      const sampleRate = audioContext.sampleRate || 44100; // Use context sample rate or default
+      const buffer = audioContext.createBuffer(1, audioData.length, sampleRate);
+
+      // Copy data to the audio buffer
+      buffer.copyToChannel(audioData, 0);
+
+      // Create and configure audio buffer source
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start();
+
+      // Debug log for processed audio chunk
+      console.log("Audio chunk processed and played. Chunk size:", chunkSize);
+    } catch (err) {
+      console.error("Error processing audio data:", err);
+      break; // Stop processing on error to prevent cascading issues
+    }
+  }
+}
+
+// Setup a broadcasting station
 async function setupStation(key) {
   swarm = new Hyperswarm();
   swarm.join(key, { client: false, server: true });
-  
-  // Show broadcaster controls
-  document.getElementById('broadcaster-controls').classList.remove('d-none');
 
-  // Update UI
-  document.getElementById('station-info').textContent = `Station ID: ${b4a.toString(key, 'hex')}`;
+  document.getElementById('broadcaster-controls').classList.remove('d-none');
   document.getElementById('setup').classList.add('d-none');
   document.getElementById('controls').classList.remove('d-none');
 
-  // Start broadcasting as soon as the station is created
   startBroadcast();
+  updatePeerCount();
 
-  // Listen for incoming connections
   swarm.on('connection', (conn) => {
     conns.push(conn);
+    console.log("Peer connected. Total peers:", conns.length);
+    updatePeerCount();
+
     conn.once('close', () => {
       conns.splice(conns.indexOf(conn), 1);
-      console.log("Peer disconnected.");
+      console.log("Peer disconnected. Total peers:", conns.length);
+      updatePeerCount();
     });
+
     conn.on('data', handleData);
 
-    // Add error handler to log disconnects and suppress crashes
     conn.on('error', (err) => {
       if (err.code === 'ECONNRESET') {
         console.log("Peer connection reset by remote peer.");
       } else {
         console.error("Connection error:", err);
       }
+      conns.splice(conns.indexOf(conn), 1);
+      updatePeerCount();
     });
   });
 }
 
-// Function to leave the station and stop broadcasting
+// Leave the station
 function leaveStation() {
   if (swarm) swarm.destroy();
   document.getElementById('setup').classList.remove('d-none');
   document.getElementById('controls').classList.add('d-none');
-  
-  // Hide broadcaster controls
   document.getElementById('broadcaster-controls').classList.add('d-none');
-  
   stopBroadcast();
   console.log("Left the station.");
 }
 
-// Function to handle incoming data from peers
+// Handle incoming data from peers
 function handleData(data) {
   if (data.length === 0) {
-    console.log("Received stop command from peer");
     stopBroadcast();
   } else {
     processIncomingAudioData(data);
   }
 }
 
-// Function to process and play incoming audio data
-function processIncomingAudioData(data) {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  }
-
-  accumulatedBuffer = b4a.concat([accumulatedBuffer, data]);
-
-  while (accumulatedBuffer.byteLength >= 4) {
-    const chunkSize = accumulatedBuffer.byteLength;
-    const audioData = new Float32Array(accumulatedBuffer.slice(0, chunkSize).buffer);
-    accumulatedBuffer = accumulatedBuffer.slice(chunkSize);
-
-    const buffer = audioContext.createBuffer(1, audioData.length, audioContext.sampleRate);
-    buffer.copyToChannel(audioData, 0);
-
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audioContext.destination);
-    source.start();
-  }
-}
-
-// Function to join an existing station
+// Join an existing station
 async function joinStation() {
   const stationId = document.getElementById('station-id').value;
   if (!stationId) {
@@ -227,7 +294,6 @@ async function joinStation() {
     return;
   }
 
-  // Convert the station ID to a topic buffer
   const topicBuffer = b4a.from(stationId, 'hex');
   swarm = new Hyperswarm();
   swarm.join(topicBuffer, { client: true, server: false });
@@ -235,29 +301,39 @@ async function joinStation() {
   document.getElementById('station-info').textContent = `Connected to Station: ${stationId}`;
   document.getElementById('setup').classList.add('d-none');
   document.getElementById('controls').classList.remove('d-none');
-
-  // Hide broadcaster controls for listener
   document.getElementById('broadcaster-controls').classList.add('d-none');
+ // document.getElementById('listener-controls').classList.remove('d-none'); // Ensure listener controls are visible
+
+  // Populate audio output devices
+  await populateAudioOutputSources();
 
   swarm.on('connection', (conn) => {
-    conn.on('data', (data) => {
-      processIncomingAudioData(data);
+    conns.push(conn);
+    console.log("Peer connected. Total peers:", conns.length);
+    updatePeerCount();
+
+    conn.on('data', (data) => processIncomingAudioData(data));
+
+    conn.once('close', () => {
+      conns.splice(conns.indexOf(conn), 1);
+      console.log("Peer disconnected. Total peers:", conns.length);
+      updatePeerCount();
     });
-    
-    // Add error handler for listener connections
+
     conn.on('error', (err) => {
       if (err.code === 'ECONNRESET') {
         console.log("Peer connection reset by remote peer.");
       } else {
         console.error("Connection error:", err);
       }
+      conns.splice(conns.indexOf(conn), 1);
+      updatePeerCount();
     });
   });
 
-  // Hide the modal after joining
-  const joinModal = document.getElementById('joinModal');
-  const modalInstance = bootstrap.Modal.getInstance(joinModal);
-  if (modalInstance) {
-    modalInstance.hide();
-  }
+  const joinModal = bootstrap.Modal.getInstance(document.getElementById('joinModal'));
+  if (joinModal) joinModal.hide();
+
+  updatePeerCount();
 }
+
