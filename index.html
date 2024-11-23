@@ -24,18 +24,6 @@
 }
 
   </style>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-       navigator.mediaDevices.getUserMedia({ audio: true })
-          .then(stream => {
-             // Handle audio stream here
-             console.log("Microphone access granted:", stream);
-          })
-          .catch(error => {
-             console.error("Microphone access denied:", error);
-          });
-    });
-    </script>
 </head>
 <body class="bg-dark text-light">
   <div id="titlebar">
@@ -43,7 +31,6 @@
   </div>
   <div class="container mt-5 text-center">
     <h1>pearCast</h1>
-    <div id="retry-message-bar" class="alert alert-warning d-none" role="alert"></div>
     <div id="setup" class="btn-group mt-4">
       <button id="create-station" class="btn btn-primary">Create Station</button>
       <button id="open-join-modal" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#joinModal">Join Station</button>

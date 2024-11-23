@@ -86,37 +86,31 @@ async function startBroadcast() {
 
   try {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Load and register the audio worklet processor
-    await audioContext.audioWorklet.addModule('broadcaster-processor.js');
-
     micStream = await navigator.mediaDevices.getUserMedia({
       audio: { deviceId: currentDeviceId ? { exact: currentDeviceId } : undefined },
     });
-
     const source = audioContext.createMediaStreamSource(micStream);
+    const processor = audioContext.createScriptProcessor(4096, 1, 1);
 
-    // Create AudioWorkletNode
-    const broadcasterNode = new AudioWorkletNode(audioContext, 'broadcaster-processor');
-    source.connect(broadcasterNode);
+    source.connect(processor);
+    processor.connect(audioContext.destination);
 
-    // Handle audio data
-    broadcasterNode.port.onmessage = (event) => {
-      const buffer = event.data;
+    processor.onaudioprocess = (event) => {
+      const audioData = event.inputBuffer.getChannelData(0);
+      const buffer = b4a.from(new Float32Array(audioData).buffer);
+
+      // Send audio data to all connections
       for (const conn of conns) {
         conn.write(buffer);
       }
     };
 
-    broadcasterNode.connect(audioContext.destination); // Optional monitoring
-
     isBroadcasting = true;
-    console.log("Broadcasting started with AudioWorklet.");
+    console.log("Broadcasting started.");
   } catch (err) {
-    console.error("Error accessing microphone or setting up broadcast:", err);
+    console.error("Error accessing microphone:", err);
   }
 }
-
 
 // Function to stop broadcasting and clean up resources
 function stopBroadcast() {
