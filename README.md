@@ -71,9 +71,6 @@ pear run pear://q3rutpfbtdsr7ikdpntpojcxy5u356qfczzgqomxqk3jdxn6ao8y
    ```bash
    pear run --dev .
    ```
-
-> **Note**: If you’re not using the Pear CLI, you can serve `index.html` through a local web server (e.g., using the `Live Server` extension in VSCode or a simple HTTP server).
-
 ---
 
 ## User Guide
