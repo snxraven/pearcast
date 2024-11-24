@@ -8,8 +8,15 @@
       "backgroundColor": "#1F2430",
       "height": "540",
       "width": "720",
-      "links": ["http://127.0.0.1", "http://localhost", "https://ka-f.fontawesome.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://stackpath.bootstrapcdn.com", "ttps://code.jquery.com"]
-
+      "links": [
+        "http://127.0.0.1",
+        "http://localhost",
+        "https://ka-f.fontawesome.com",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://stackpath.bootstrapcdn.com",
+        "ttps://code.jquery.com"
+      ]
     }
   },
   "type": "module",
@@ -27,6 +34,7 @@
     "bootstrap": "^5.3.3",
     "hypercore-crypto": "^3.4.2",
     "hyperswarm": "^4.8.4",
+    "node-turn": "^0.0.6",
     "pear-stdio": "^1.0.1",
     "stream": "^0.0.3"
   }
