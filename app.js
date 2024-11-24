@@ -122,7 +122,7 @@ function updatePeerCount() {
   if (isBroadcasting) {
     stationInfoElement.textContent = `Station ID: ${b4a.toString(stationKey, 'hex')}\nConnected Peers: ${peerCount}`;
   } else {
-    stationInfoElement.textContent = `Connected Peers: ${peerCount}`;
+    stationInfoElement.textContent = `Station ID: ${b4a.toString(stationKey, 'hex')}\nConnected Peers: ${peerCount}`;
   }
   console.log(`Peer count updated: ${peerCount}`);
 }
