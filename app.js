@@ -15,9 +15,7 @@ let conns = []; // Store Hyperswarm connections
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM fully loaded and parsed");
   document.getElementById('create-station').addEventListener('click', () => {
-    console.log("Create Station button clicked");
-    const createStationModal = new bootstrap.Modal(document.getElementById('createStationModal'));
-    createStationModal.show();
+    showModal('createStationModal');
   });
 
   document.getElementById('generate-new-key').addEventListener('click', () => {
@@ -33,26 +31,43 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Creating station with key:", b4a.toString(stationKey, 'hex'));
     setupStation(stationKey);
 
-    const createStationModal = bootstrap.Modal.getInstance(document.getElementById('createStationModal'));
-    createStationModal.hide();
+    hideModal('createStationModal');
   });
+
+  document.getElementById('create-station-cancel-button').addEventListener('click', () => {
+    hideModal('createStationModal');
+  })
 
   document.getElementById('leave-stream').addEventListener('click', () => {
     console.log("Leave Stream button clicked");
     leaveStation();
   });
 
-  document.getElementById('join-station-button').addEventListener('click', () => {
-    console.log("Join Station button clicked");
-    joinStation();
-    const joinModal = bootstrap.Modal.getInstance(document.getElementById('joinModal'));
-    joinModal.hide();
+  document.getElementById('open-join-modal').addEventListener('click', () => {
+    showModal('joinModal');
   });
+
+  document.getElementById('join-station-button').addEventListener('click', () => {
+    joinStation();
+    hideModal('joinModal');
+  });
+
+  document.getElementById('join-station-cancel-button').addEventListener('click', () => {
+    hideModal('joinModal');
+  })
 
   document.getElementById('apply-audio-source').addEventListener('click', applyAudioSource);
 
   populateAudioInputSources();
 });
+
+function showModal(modalId) {
+  document.getElementById(modalId).classList.remove('hidden');
+}
+
+function hideModal(modalId) {
+  document.getElementById(modalId).classList.add('hidden');
+}
 
 async function populateAudioInputSources() {
   try {
